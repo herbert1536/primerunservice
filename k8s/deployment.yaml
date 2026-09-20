@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: primerun-service
+  labels:
+    app: primerun-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: primerun-service
+  template:
+    metadata:
+      labels:
+        app: primerun-service
+    spec:
+      containers:
+        - name: primerun-service
+          image: primerun-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: primerun-service-config
+            - secretRef:
+                name: primerun-service-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1024Mi"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 5

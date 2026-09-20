@@ -47,6 +47,13 @@ public class Race {
         this.availableSlots = totalSlots;
     }
 
+    public Race(String name, LocalDateTime eventDate, Integer totalSlots, Integer availableSlots) {
+        this.name = name;
+        this.eventDate = eventDate;
+        this.totalSlots = totalSlots;
+        this.availableSlots = availableSlots;
+    }
+
     public Long getId() {
         return id;
     }
