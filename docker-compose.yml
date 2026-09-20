@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: primerun-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: primerun_db
+      POSTGRES_USER: primerun
+      POSTGRES_PASSWORD: primerun_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U primerun -d primerun_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: primerun-api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/primerun_db
+      SPRING_DATASOURCE_USERNAME: primerun
+      SPRING_DATASOURCE_PASSWORD: primerun_secret
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
