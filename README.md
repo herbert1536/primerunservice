@@ -67,12 +67,7 @@ public interface RaceRepository extends JpaRepository<Race, Long> {
    docker compose up --build -d
    ```
 
-3. Verifique os logs da aplicação:
-   ```bash
-   docker compose logs -f app
-   ```
-
-4. Verifique a saúde da aplicação via Actuator:
+3. Verifique a saúde da aplicação via Actuator:
    ```bash
    curl http://localhost:8080/actuator/health
    ```
@@ -82,16 +77,15 @@ public interface RaceRepository extends JpaRepository<Race, Long> {
 ## 📡 Endpoints e Exemplos de Requisição cURL
 
 ### 1. Criar uma Nova Corrida
-**POST** `/api/races`
+**POST** `/api/v1/races`
 
 ```bash
-curl -X POST http://localhost:8080/api/races \
+curl -X POST http://localhost:8080/api/v1/races \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Maratona Internacional de São Paulo",
-    "date": "2026-11-15T07:00:00",
-    "totalCapacity": 100,
-    "availableSlots": 100
+    "eventDate": "2026-11-15T07:00:00",
+    "totalSlots": 100
   }'
 ```
 
@@ -100,8 +94,8 @@ curl -X POST http://localhost:8080/api/races \
 {
   "id": 1,
   "name": "Maratona Internacional de São Paulo",
-  "date": "2026-11-15T07:00:00",
-  "totalCapacity": 100,
+  "eventDate": "2026-11-15T07:00:00",
+  "totalSlots": 100,
   "availableSlots": 100
 }
 ```
@@ -109,19 +103,19 @@ curl -X POST http://localhost:8080/api/races \
 ---
 
 ### 2. Buscar Corrida por ID
-**GET** `/api/races/{id}`
+**GET** `/api/v1/races/{id}`
 
 ```bash
-curl -X GET http://localhost:8080/api/races/1
+curl -X GET http://localhost:8080/api/v1/races/1
 ```
 
 ---
 
 ### 3. Inscrever Atleta na Corrida
-**POST** `/api/registrations`
+**POST** `/api/v1/registrations`
 
 ```bash
-curl -X POST http://localhost:8080/api/registrations \
+curl -X POST http://localhost:8080/api/v1/registrations \
   -H "Content-Type: application/json" \
   -d '{
     "raceId": 1,
@@ -135,9 +129,11 @@ curl -X POST http://localhost:8080/api/registrations \
 {
   "id": 1,
   "raceId": 1,
+  "raceName": "Maratona Internacional de São Paulo",
   "athleteName": "Ayrton Senna",
   "athleteEmail": "ayrton.senna@primerun.com",
-  "registeredAt": "2026-09-20T17:00:00"
+  "registrationDate": "2026-09-20T17:00:00",
+  "status": "CONFIRMED"
 }
 ```
 
@@ -147,8 +143,8 @@ curl -X POST http://localhost:8080/api/registrations \
   "timestamp": "2026-09-20T17:00:05",
   "status": 409,
   "error": "Conflict",
-  "message": "Inscrições esgotadas para esta corrida.",
-  "path": "/api/registrations"
+  "message": "No available slots remaining for race ID: 1",
+  "path": "/api/v1/registrations"
 }
 ```
 
@@ -178,9 +174,9 @@ kubectl apply -f k8s/hpa.yaml
 
 ---
 
-## 🧪 Testes de Concorrência
+## 🧪 Testes Automatizados
 
-O projeto possui um teste de integração dedicado (`RaceRegistrationConcurrencyTest`) que utiliza `ExecutorService` e `CountDownLatch` para disparar 100 requisições simultâneas competindo por 5 vagas disponíveis:
+O projeto conta com suíte completa de testes automatizados:
 
 ```bash
 ./mvnw test -Dtest=RegistrationServiceTest,RegistrationControllerTest
